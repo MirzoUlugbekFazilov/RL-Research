@@ -103,6 +103,65 @@ Measured by running `evaluate.py` on the committed checkpoint —
 The agent solves every randomised start/goal configuration in the U-maze, and
 routes around the dividing wall rather than pressing against it.
 
+### Extended metrics
+
+300 episodes on fixed seeds (`30000 + episode`) so the numbers are
+reproducible. Success rates carry a 95% Wilson confidence interval.
+
+| Metric | Value |
+|---|---|
+| Success rate | **100.00%** (300/300) |
+| 95% CI | 98.74 – 100% |
+
+**Steps to goal**
+
+| n | Mean | Std | Min | p25 | Median | p75 | p90 | p95 | Max |
+|---|---|---|---|---|---|---|---|---|---|
+| 300 | 48.82 | 27.68 | 7 | 24 | 43 | 70 | 91.2 | 101.1 | **121** |
+
+**Episode return**
+
+| n | Mean | Std | Min | p25 | Median | p75 | p95 | Max |
+|---|---|---|---|---|---|---|---|---|
+| 300 | 12.88 | 3.96 | 4.10 | 9.78 | 11.45 | 15.30 | 21.34 | 24.57 |
+
+**Success as a function of step budget**
+
+| Budget | 25 | 50 | 75 | 100 | 150 | 200 | 300 |
+|---|---|---|---|---|---|---|---|
+| Solved | 29.7% | 60.3% | 80.3% | 94.3% | **100%** | 100% | 100% |
+
+The spread is the story here. Mean steps-to-goal (48.8) is close to the median
+(43), but the distribution has a long right tail: the easiest start/goal pairs
+are solved in **7** steps and the hardest need **121**. That 17× range is the
+maze geometry, not policy inconsistency — pairs on the same arm of the U are a
+straight line apart, while pairs on opposite arms require the full detour
+around the dividing block. Note that **5.7% of episodes need more than 100
+steps**, so a 100-step evaluation budget would have understated this policy at
+94.3%.
+
+The mean return of 12.88 with a std of 3.96 reflects the same geometry: under
+the dense `exp(−d)` reward, a short trip accumulates less total reward than a
+long one that spends many steps near the goal, so return is a poor proxy for
+quality on this task and success rate is the metric that matters.
+
+**Model and runtime**
+
+| Metric | Value |
+|---|---|
+| Policy parameters | 136,965 (all trainable) |
+| Checkpoint size | 1.6 MB |
+| Inference latency | 0.136 ms/step |
+| Evaluation throughput | ~7,300 env steps/s (MuJoCo + policy) |
+| Total steps evaluated | 14,645 |
+
+Measured single-threaded on CPU (Apple M1 Pro), batch size 1.
+
+> The headline table above (47.74 mean steps) comes from `evaluate.py`, which
+> uses **unseeded** resets; the extended table uses fixed seeds. The small
+> difference between 47.74 and 48.82 is the sampling variance of which
+> start/goal pairs get drawn, not a discrepancy.
+
 ### Ablations recorded during development
 
 | Configuration | Success rate |

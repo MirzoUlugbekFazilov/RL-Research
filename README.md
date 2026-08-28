@@ -16,12 +16,40 @@ policy-gradient method on tasks PPO is known to solve?
 |---|---|---|---|
 | [`cartpole-PPO`](cartpole-PPO) | `CartPole-v1` | PPO (Stable-Baselines3) | **100%** — 500.00/500 avg return |
 | [`cartpole-GFlowNet`](cartpole-GFlowNet) | `CartPole-v1` | GFlowNet, **detailed balance** | **100%** — 300/300 episodes |
-| [`pointmaze-ppo`](pointmaze-ppo) | `PointMaze_UMazeDense-v3` | PPO (Stable-Baselines3) | **100%** — 300/300, 47.7 steps to goal |
-| [`pointmaze-GFlowNet`](pointmaze-GFlowNet) | `PointMaze_UMaze-v3` (sparse) | GFlowNet, **subtrajectory balance** | **100%** — 100/100, 50.2 steps to goal |
+| [`pointmaze-ppo`](pointmaze-ppo) | `PointMaze_UMazeDense-v3` | PPO (Stable-Baselines3) | **100%** — 300/300, 48.8 steps to goal |
+| [`pointmaze-GFlowNet`](pointmaze-GFlowNet) | `PointMaze_UMaze-v3` (sparse) | GFlowNet, **subtrajectory balance** | **100%** — 300/300, 47.9 steps to goal |
 
 All figures are measured by running each project's `evaluate.py` on the
 committed checkpoint. Each project's README documents its algorithm,
 hyperparameters, design decisions and full results.
+
+---
+
+## Metrics at a glance
+
+All measured over **300 episodes** on fixed held-out seeds, greedy action
+selection, single-threaded CPU. Success rates carry a 95% Wilson confidence
+interval.
+
+| | cartpole-PPO | cartpole-GFlowNet | pointmaze-ppo | pointmaze-GFlowNet |
+|---|---|---|---|---|
+| Success rate | 100% | 100% | 100% | 100% |
+| 95% CI | 98.74–100% | 98.74–100% | 98.74–100% | 98.74–100% |
+| Primary metric | return 500.00 | return 500.00 | 48.82 steps | 47.94 steps |
+| Std | 0.00 | 0.00 | 27.68 | 25.18 |
+| Median | 500 | 500 | 43 | 41.5 |
+| Min / max | 500 / 500 | 500 / 500 | 7 / 121 | 9 / 122 |
+| **Success when sampling** | 100% | **99.0%** | — | **100%** |
+| Parameters | 9,155 | 17,667 | 136,965 | 141,316 |
+| Checkpoint | 43.6 KB | 74.5 KB | 1.6 MB | 556 KB |
+| Latency | 0.090 ms/step | 0.041 ms/step | 0.136 ms/step | 0.091 ms/step |
+
+The **"success when sampling"** row is the one worth pausing on. It reports
+performance when actions are drawn from the policy distribution instead of
+taking the argmax — the mode a GFlowNet is actually designed for. Both
+GFlowNets remain near-perfect as *samplers* (99.0% on CartPole, 100% on the
+maze), which means the flow is sharp enough to control the system without any
+greedy read-out on top.
 
 ---
 

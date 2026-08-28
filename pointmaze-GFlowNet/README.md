@@ -176,16 +176,78 @@ pairs, 150-step budget.
 A broader sweep over **500 seeds** during development also reached the goal on
 every episode, with a worst case of 112 steps.
 
+### Extended metrics
+
+300 episodes on fixed seeds (`50000 + episode`), under both action-selection
+rules. For a GFlowNet this comparison matters: `P_F` is a *sampler*, and the
+greedy policy is a separate object derived from the same flow.
+
+| Policy | Successes | Rate | 95% CI (Wilson) |
+|---|---|---|---|
+| Greedy (argmax) | 300/300 | **100.00%** | 98.74 – 100% |
+| Sampled (`P_F`) | 300/300 | **100.00%** | 98.74 – 100% |
+
+**Steps to goal**
+
+| Policy | n | Mean | Std | Min | p25 | Median | p75 | p90 | p95 | Max |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Greedy | 300 | 47.94 | 25.18 | 9 | 28 | 41.5 | 59 | 87 | 98.1 | **122** |
+| Sampled | 300 | 49.99 | 25.12 | 12 | 30 | 44 | 61 | 89 | 96.1 | 120 |
+
+The sampled policy reaches the goal on **every one of 300 episodes**, costing
+only ~2 extra steps on average. The flow is sharp enough that its
+maximum-entropy sampler is a competent controller in its own right — the
+argmax read-out is a refinement, not a rescue.
+
+**Success as a function of step budget** (greedy)
+
+| Budget | 25 | 50 | 75 | 100 | 112 | 150 |
+|---|---|---|---|---|---|---|
+| Solved | 18.7% | 66.7% | 82.7% | **95.7%** | 97.0% | **100%** |
+
+This curve is the direct empirical justification for the 150-step evaluation
+budget described above. **4.3% of episodes genuinely require more than 100
+steps**, and the hardest one in this sample needs 122 — so scoring against the
+100-step *training* horizon would report this policy at 95.7% and charge it for
+episodes that are unreachable within the budget at any skill level. It also
+slightly extends the earlier 500-seed sweep, which saw a worst case of 112;
+these 300 seeds contain a harder pair at 122 steps. Either way 150 leaves
+margin, and remains half of the environment's own 300-step default.
+
+**Model and runtime**
+
+| Metric | Value |
+|---|---|
+| Parameters | 141,316 (all trainable) |
+| Checkpoint size | 556 KB |
+| Inference latency | 0.091 ms/step (greedy), 0.102 ms/step (sampled) |
+| Evaluation throughput | ~11,000 env steps/s (MuJoCo + policy) |
+| Total steps evaluated | 14,383 (greedy) |
+
+Measured single-threaded on CPU (Apple M1 Pro), batch size 1.
+
+> The headline table above (50.19 mean steps over 100 episodes) comes from
+> `evaluate.py`, which uses **unseeded** resets; the extended table uses fixed
+> seeds over 300 episodes. The difference is sampling variance in which
+> start/goal pairs are drawn.
+
 ### Comparison with PPO on the same maze
+
+Both measured over 300 seeded episodes with greedy action selection.
 
 | | GFlowNet (SubTB) | [PPO](../pointmaze-ppo) |
 |---|---|---|
-| Success rate | 100% | 100% |
-| Average steps to goal | 50.19 | 47.74 |
-| Reward signal | **Sparse** (`R = 1` at goal) | **Dense** (`exp(−d)`) |
+| Success rate | 100% (CI 98.74–100) | 100% (CI 98.74–100) |
+| Mean steps to goal | 47.94 | 48.82 |
+| Std | 25.18 | 27.68 |
+| Median | 41.5 | 43 |
+| Min / max | 9 / 122 | 7 / 121 |
+| Solved within 100 steps | 95.7% | 94.3% |
+| **Reward signal** | **Sparse** (`R = 1` at goal) | **Dense** (`exp(−d)`) |
 | Action space | 4 discrete | 2-D continuous |
 | Goal radius | 0.45 | 0.5 |
-| Evaluation episodes | 100 | 300 |
+| Parameters | 141,316 | 136,965 |
+| Inference latency | 0.091 ms/step | 0.136 ms/step |
 
 **These are not a like-for-like benchmark** — the environments differ in reward
 signal, action space and success radius, so the step counts are not directly

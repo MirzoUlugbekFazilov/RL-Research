@@ -88,6 +88,44 @@ The policy is saturated: every one of the 100 evaluation episodes ran to the
 500-step truncation limit without the pole ever falling. The environment is
 solved, and the variance is exactly zero.
 
+### Extended metrics
+
+A wider sweep — **300 episodes** on held-out seeds (`20000 + episode`), run
+under both deterministic and stochastic action selection.
+
+**Return distribution**
+
+| Policy | n | Mean | Std | Min | p25 | Median | p75 | p95 | Max |
+|---|---|---|---|---|---|---|---|---|---|
+| Deterministic (argmax) | 300 | 500.00 | **0.00** | 500 | 500 | 500 | 500 | 500 | 500 |
+| Stochastic (sampled) | 300 | 500.00 | **0.00** | 500 | 500 | 500 | 500 | 500 | 500 |
+
+**Success rate** (return ≥ 475, with 95% Wilson confidence interval)
+
+| Policy | Successes | Rate | 95% CI | Episodes at exactly 500 |
+|---|---|---|---|---|
+| Deterministic | 300/300 | 100.00% | 98.74 – 100% | 300 |
+| Stochastic | 300/300 | 100.00% | 98.74 – 100% | 300 |
+
+The stochastic row is the informative one. Sampling from the policy's action
+distribution rather than taking the argmax **also never drops the pole** — the
+learned distribution has collapsed to near-deterministic, so there is no
+residual exploration noise left to destabilise it. The distribution is
+degenerate in the best possible way: every percentile from the minimum to the
+maximum is 500.
+
+**Model and runtime**
+
+| Metric | Value |
+|---|---|
+| Policy parameters | 9,155 (all trainable) |
+| Checkpoint size | 43.6 KB |
+| Inference latency | 0.090 ms/step (deterministic) |
+| Evaluation throughput | ~11,100 env steps/s |
+| Total steps evaluated | 150,000 |
+
+Measured single-threaded on CPU (Apple M1 Pro), batch size 1.
+
 ---
 
 ## Usage

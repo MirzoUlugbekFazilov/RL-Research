@@ -136,14 +136,68 @@ Measured by running `evaluate.py` on the committed checkpoint —
 Every single one of the 300 held-out episodes reached the 500-step truncation
 limit. **Zero variance** — the worst episode is also the best episode.
 
+### Extended metrics
+
+The same 300 held-out seeds, run under both action-selection rules. For a
+GFlowNet this comparison is the meaningful one: `P_F` is a *sampler*, and the
+greedy policy is a different object derived from it.
+
+**Return distribution**
+
+| Policy | n | Mean | Std | Min | p25 | Median | p75 | p95 | Max |
+|---|---|---|---|---|---|---|---|---|---|
+| Greedy (argmax) | 300 | **500.00** | **0.00** | 500 | 500 | 500 | 500 | 500 | 500 |
+| Sampled (`P_F`) | 300 | 498.55 | 15.73 | 285 | 500 | 500 | 500 | 500 | 500 |
+
+**Success rate** (return ≥ 475, with 95% Wilson confidence interval)
+
+| Policy | Successes | Rate | 95% CI | Episodes at exactly 500 |
+|---|---|---|---|---|
+| Greedy | 300/300 | **100.00%** | 98.74 – 100% | 300 |
+| Sampled | 297/300 | **99.00%** | 97.10 – 99.66% | 297 |
+
+This is the most informative result in the project. The GFlowNet was never
+trained to maximise return — it was trained to make flow consistent — yet
+**sampling from `P_F` still balances the pole for the full 500 steps in 99% of
+episodes**. The sampler is not a degenerate deterministic policy: it retains
+enough entropy that 3 of 300 episodes end early (worst case 285 steps), and
+that residual stochasticity is exactly what the maximum-entropy objective is
+supposed to preserve. The greedy read-out of the same flow is perfect.
+
+**Model and runtime**
+
+| Metric | Value |
+|---|---|
+| Parameters | 17,667 (all trainable) |
+| Checkpoint size | 74.5 KB |
+| Inference latency | 0.041 ms/step (greedy), 0.073 ms/step (sampled) |
+| Evaluation throughput | ~24,500 env steps/s (greedy) |
+| Total steps evaluated | 150,000 per policy |
+
+**Flow diagnostic**
+
+At an initial state the learned flow is `log F(s₀) = 135.8`. Two analytic
+reference points bracket what to expect: `(500 − t)·(log 2 + 1/T) = 596.6`
+under a uniform policy, and `(500 − t)·(1/T) = 250` under a fully
+deterministic one. The learned value sits below both. This is worth reading as
+a diagnostic rather than a defect — the detailed balance residual is only
+minimised on transitions that appear in the replay buffer, so the absolute
+scale of `log F` is not pinned down away from that distribution. What the
+objective actually constrains is the *difference* between connected states,
+and that is what the policy reads out via the softmax.
+
 ### Comparison with the PPO baseline
 
 | | GFlowNet (DB) | PPO |
 |---|---|---|
-| Average return | 500.00 | 500.00 |
+| Average return (greedy) | 500.00 | 500.00 |
+| Std | 0.00 | 0.00 |
 | Worst episode | 500 | 500 |
-| Success rate | 100% | 100% |
-| Evaluation episodes | 300 | 100 |
+| Success rate | 100% (CI 98.74–100) | 100% (CI 98.74–100) |
+| **Return when sampling** | **498.55 (99.0% success)** | 500.00 (100% success) |
+| Parameters | 17,667 | 9,155 |
+| Inference latency | 0.041 ms/step | 0.090 ms/step |
+| Evaluation episodes | 300 | 300 |
 
 The two methods are indistinguishable at the ceiling: CartPole is saturated by
 both. The interesting result is not that the GFlowNet wins — it is that a
