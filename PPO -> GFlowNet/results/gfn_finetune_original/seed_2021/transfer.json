@@ -1,0 +1,63 @@
+{
+  "source_algo": "ppo",
+  "target_algo": "gflownet",
+  "parameters_transferred": [
+    {
+      "source": "mlp_extractor.policy_net.0.weight",
+      "target": "pf.0.weight",
+      "shape": [
+        128,
+        7
+      ]
+    },
+    {
+      "source": "mlp_extractor.policy_net.0.bias",
+      "target": "pf.0.bias",
+      "shape": [
+        128
+      ]
+    },
+    {
+      "source": "mlp_extractor.policy_net.2.weight",
+      "target": "pf.2.weight",
+      "shape": [
+        128,
+        128
+      ]
+    },
+    {
+      "source": "mlp_extractor.policy_net.2.bias",
+      "target": "pf.2.bias",
+      "shape": [
+        128
+      ]
+    },
+    {
+      "source": "action_net.weight",
+      "target": "pf.4.weight",
+      "shape": [
+        9,
+        128
+      ]
+    },
+    {
+      "source": "action_net.bias",
+      "target": "pf.4.bias",
+      "shape": [
+        9
+      ]
+    }
+  ],
+  "n_parameters_transferred": 6,
+  "logz_head_randomly_initialised": true,
+  "critic_discarded": true,
+  "optimiser_moments_transferred": false,
+  "probe_observations": 512,
+  "probe_seed": 2021,
+  "max_abs_logit_difference": 0.0,
+  "max_abs_probability_difference": 0.0,
+  "greedy_action_agreement": 1.0,
+  "equivalent": true,
+  "source_checkpoint": "/Users/mirzo-ulugbekfazilov/Desktop/RL+gflowne/checkpoints/ppo_pretrain_corrupted/seed_2021/model.zip",
+  "pretrain_steps_in_checkpoint": 307200
+}
