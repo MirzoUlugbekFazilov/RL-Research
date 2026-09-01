@@ -1,0 +1,62 @@
+{
+  "source_checkpoint": "/Users/mirzo-ulugbekfazilov/Desktop/RL+PPO/checkpoints/gfn_pretrain_corrupted/seed_2018/model.pt",
+  "source_algo": "gflownet",
+  "target_algo": "ppo",
+  "parameters_transferred": [
+    {
+      "source": "pf.0.weight",
+      "target": "mlp_extractor.policy_net.0.weight",
+      "shape": [
+        128,
+        7
+      ]
+    },
+    {
+      "source": "pf.0.bias",
+      "target": "mlp_extractor.policy_net.0.bias",
+      "shape": [
+        128
+      ]
+    },
+    {
+      "source": "pf.2.weight",
+      "target": "mlp_extractor.policy_net.2.weight",
+      "shape": [
+        128,
+        128
+      ]
+    },
+    {
+      "source": "pf.2.bias",
+      "target": "mlp_extractor.policy_net.2.bias",
+      "shape": [
+        128
+      ]
+    },
+    {
+      "source": "pf.4.weight",
+      "target": "action_net.weight",
+      "shape": [
+        9,
+        128
+      ]
+    },
+    {
+      "source": "pf.4.bias",
+      "target": "action_net.bias",
+      "shape": [
+        9
+      ]
+    }
+  ],
+  "n_parameters_transferred": 6,
+  "critic_randomly_initialised": true,
+  "optimiser_moments_transferred": false,
+  "probe_observations": 512,
+  "probe_seed": 2018,
+  "max_abs_logit_difference": 0.0,
+  "max_abs_probability_difference": 0.0,
+  "greedy_action_agreement": 1.0,
+  "equivalent": true,
+  "pretrain_steps_in_checkpoint": 300000
+}

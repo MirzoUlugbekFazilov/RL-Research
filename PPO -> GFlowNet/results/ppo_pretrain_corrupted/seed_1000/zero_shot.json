@@ -1,0 +1,12 @@
+{
+  "n_episodes": 100,
+  "mean_reward": 0.0,
+  "success_rate": 0.0,
+  "n_success": 0,
+  "mean_steps_to_goal": NaN,
+  "mean_steps_to_goal_censored": 300.0,
+  "mean_path_efficiency": NaN,
+  "return_std": 0.0,
+  "return_sem": 0.0,
+  "eval_variant": "original"
+}
