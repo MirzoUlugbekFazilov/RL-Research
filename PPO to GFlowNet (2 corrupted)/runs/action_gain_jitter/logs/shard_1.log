@@ -1,0 +1,28 @@
+AdroitHandRelocateDense-v1, AdroitHandHammerDense-v1, AdroitHandDoorDense-v1 environment's reward functions were updated in v1.2.1 without an environment version update. Therefore, use gymnasium-robotics==1.2.0 for v1 reproducibility or use v2 in gymnasium-robotics>=1.4.3. See https://github.com/Farama-Foundation/Gymnasium-Robotics/pull/220 for more details
+Study A: PPO on corrupted -> GFlowNet fine-tuned on original
+  corruption      : action_gain_jitter
+  budgets         : 300,000 pretrain + 300,000 adapt (environment steps)
+  seeds           : [123, 2002, 2008, 2014, 2020]
+  hparams sha256  : d01ab1172c5f215c
+seed 123
+  [ppo_pretrain_corrupted/seed_123] native=0.830 zero_shot=0.820 (20s)
+  [gfn_finetune_original/seed_123] success=0.520 reward=56.7 (26s)
+  [gfn_scratch_original/seed_123] success=0.610 reward=44.8 (26s)
+seed 2002
+  [ppo_pretrain_corrupted/seed_2002] native=0.830 zero_shot=0.840 (19s)
+  [gfn_finetune_original/seed_2002] success=0.680 reward=48.3 (26s)
+  [gfn_scratch_original/seed_2002] success=0.580 reward=17.6 (26s)
+seed 2008
+  [ppo_pretrain_corrupted/seed_2008] native=0.810 zero_shot=0.810 (19s)
+  [gfn_finetune_original/seed_2008] success=0.770 reward=61.2 (26s)
+  [gfn_scratch_original/seed_2008] success=0.850 reward=42.3 (26s)
+seed 2014
+  [ppo_pretrain_corrupted/seed_2014] native=0.840 zero_shot=0.840 (20s)
+  [gfn_finetune_original/seed_2014] success=0.670 reward=92.2 (26s)
+  [gfn_scratch_original/seed_2014] success=0.570 reward=32.4 (25s)
+seed 2020
+  [ppo_pretrain_corrupted/seed_2020] native=0.810 zero_shot=0.820 (20s)
+  [gfn_finetune_original/seed_2020] success=0.510 reward=35.1 (26s)
+  [gfn_scratch_original/seed_2020] success=0.820 reward=62.2 (25s)
+done in 356s -> /Users/mirzo-ulugbekfazilov/Desktop/ppo to gflownet/runs/action_gain_jitter/results
+now run:  python3 analyze.py

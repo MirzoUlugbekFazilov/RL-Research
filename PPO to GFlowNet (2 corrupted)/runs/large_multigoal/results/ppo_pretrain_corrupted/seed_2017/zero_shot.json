@@ -1,0 +1,12 @@
+{
+  "n_episodes": 100,
+  "mean_reward": 6.57,
+  "success_rate": 0.11,
+  "n_success": 11,
+  "mean_steps_to_goal": 61.36363636363637,
+  "mean_steps_to_goal_censored": 273.75,
+  "mean_path_efficiency": 0.6122129128841881,
+  "return_std": 32.159405680723864,
+  "return_sem": 3.2159405680723863,
+  "eval_variant": "original"
+}
