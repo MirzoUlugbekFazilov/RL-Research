@@ -3,3 +3,6 @@ __pycache__/
 .DS_Store
 .venv/
 venv/
+
+# Trained model weights are not tracked (158 MB); re-create them with run_all.sh
+runs/*/checkpoints/

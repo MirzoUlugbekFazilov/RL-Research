@@ -1,0 +1,128 @@
+AdroitHandRelocateDense-v1, AdroitHandHammerDense-v1, AdroitHandDoorDense-v1 environment's reward functions were updated in v1.2.1 without an environment version update. Therefore, use gymnasium-robotics==1.2.0 for v1 reproducibility or use v2 in gymnasium-robotics>=1.4.3. See https://github.com/Farama-Foundation/Gymnasium-Robotics/pull/220 for more details
+Study A: PPO on corrupted -> GFlowNet fine-tuned on original
+  corruption      : large_multigoal
+  budgets         : 300,000 pretrain + 300,000 adapt (environment steps)
+  seeds           : [42, 123, 456, 789, 1000, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024]
+  hparams sha256  : d01ab1172c5f215c
+seed 42
+  [ppo_pretrain_corrupted/seed_42] cached
+  [gfn_finetune_original/seed_42] cached
+  [gfn_scratch_original/seed_42] cached
+seed 123
+  [ppo_pretrain_corrupted/seed_123] cached
+  [gfn_finetune_original/seed_123] cached
+  [gfn_scratch_original/seed_123] cached
+seed 456
+  [ppo_pretrain_corrupted/seed_456] cached
+  [gfn_finetune_original/seed_456] cached
+  [gfn_scratch_original/seed_456] cached
+seed 789
+  [ppo_pretrain_corrupted/seed_789] cached
+  [gfn_finetune_original/seed_789] cached
+  [gfn_scratch_original/seed_789] cached
+seed 1000
+  [ppo_pretrain_corrupted/seed_1000] cached
+  [gfn_finetune_original/seed_1000] cached
+  [gfn_scratch_original/seed_1000] cached
+seed 2000
+  [ppo_pretrain_corrupted/seed_2000] cached
+  [gfn_finetune_original/seed_2000] cached
+  [gfn_scratch_original/seed_2000] cached
+seed 2001
+  [ppo_pretrain_corrupted/seed_2001] cached
+  [gfn_finetune_original/seed_2001] cached
+  [gfn_scratch_original/seed_2001] cached
+seed 2002
+  [ppo_pretrain_corrupted/seed_2002] cached
+  [gfn_finetune_original/seed_2002] cached
+  [gfn_scratch_original/seed_2002] cached
+seed 2003
+  [ppo_pretrain_corrupted/seed_2003] cached
+  [gfn_finetune_original/seed_2003] cached
+  [gfn_scratch_original/seed_2003] cached
+seed 2004
+  [ppo_pretrain_corrupted/seed_2004] cached
+  [gfn_finetune_original/seed_2004] cached
+  [gfn_scratch_original/seed_2004] cached
+seed 2005
+  [ppo_pretrain_corrupted/seed_2005] cached
+  [gfn_finetune_original/seed_2005] cached
+  [gfn_scratch_original/seed_2005] cached
+seed 2006
+  [ppo_pretrain_corrupted/seed_2006] cached
+  [gfn_finetune_original/seed_2006] cached
+  [gfn_scratch_original/seed_2006] cached
+seed 2007
+  [ppo_pretrain_corrupted/seed_2007] cached
+  [gfn_finetune_original/seed_2007] cached
+  [gfn_scratch_original/seed_2007] cached
+seed 2008
+  [ppo_pretrain_corrupted/seed_2008] cached
+  [gfn_finetune_original/seed_2008] cached
+  [gfn_scratch_original/seed_2008] cached
+seed 2009
+  [ppo_pretrain_corrupted/seed_2009] cached
+  [gfn_finetune_original/seed_2009] cached
+  [gfn_scratch_original/seed_2009] cached
+seed 2010
+  [ppo_pretrain_corrupted/seed_2010] cached
+  [gfn_finetune_original/seed_2010] cached
+  [gfn_scratch_original/seed_2010] cached
+seed 2011
+  [ppo_pretrain_corrupted/seed_2011] cached
+  [gfn_finetune_original/seed_2011] cached
+  [gfn_scratch_original/seed_2011] cached
+seed 2012
+  [ppo_pretrain_corrupted/seed_2012] cached
+  [gfn_finetune_original/seed_2012] cached
+  [gfn_scratch_original/seed_2012] cached
+seed 2013
+  [ppo_pretrain_corrupted/seed_2013] cached
+  [gfn_finetune_original/seed_2013] cached
+  [gfn_scratch_original/seed_2013] cached
+seed 2014
+  [ppo_pretrain_corrupted/seed_2014] cached
+  [gfn_finetune_original/seed_2014] cached
+  [gfn_scratch_original/seed_2014] cached
+seed 2015
+  [ppo_pretrain_corrupted/seed_2015] cached
+  [gfn_finetune_original/seed_2015] cached
+  [gfn_scratch_original/seed_2015] cached
+seed 2016
+  [ppo_pretrain_corrupted/seed_2016] cached
+  [gfn_finetune_original/seed_2016] cached
+  [gfn_scratch_original/seed_2016] cached
+seed 2017
+  [ppo_pretrain_corrupted/seed_2017] cached
+  [gfn_finetune_original/seed_2017] cached
+  [gfn_scratch_original/seed_2017] cached
+seed 2018
+  [ppo_pretrain_corrupted/seed_2018] cached
+  [gfn_finetune_original/seed_2018] cached
+  [gfn_scratch_original/seed_2018] cached
+seed 2019
+  [ppo_pretrain_corrupted/seed_2019] cached
+  [gfn_finetune_original/seed_2019] cached
+  [gfn_scratch_original/seed_2019] cached
+seed 2020
+  [ppo_pretrain_corrupted/seed_2020] cached
+  [gfn_finetune_original/seed_2020] cached
+  [gfn_scratch_original/seed_2020] cached
+seed 2021
+  [ppo_pretrain_corrupted/seed_2021] cached
+  [gfn_finetune_original/seed_2021] cached
+  [gfn_scratch_original/seed_2021] cached
+seed 2022
+  [ppo_pretrain_corrupted/seed_2022] cached
+  [gfn_finetune_original/seed_2022] cached
+  [gfn_scratch_original/seed_2022] cached
+seed 2023
+  [ppo_pretrain_corrupted/seed_2023] cached
+  [gfn_finetune_original/seed_2023] cached
+  [gfn_scratch_original/seed_2023] cached
+seed 2024
+  [ppo_pretrain_corrupted/seed_2024] cached
+  [gfn_finetune_original/seed_2024] cached
+  [gfn_scratch_original/seed_2024] cached
+done in 0s -> /Users/mirzo-ulugbekfazilov/Desktop/ppo to gflownet/runs/large_multigoal/results
+now run:  python3 analyze.py
