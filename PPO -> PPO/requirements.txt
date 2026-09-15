@@ -1,0 +1,8 @@
+# Direct dependencies; not a lock of the original experiment environment.
+numpy
+scipy
+torch
+stable-baselines3
+gymnasium
+gymnasium-robotics
+mujoco

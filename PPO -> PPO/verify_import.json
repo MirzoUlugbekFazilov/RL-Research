@@ -1,0 +1,65 @@
+{
+  "corruption": "action_gain_jitter",
+  "seeds": [
+    42,
+    2000
+  ],
+  "n_comparisons": 4,
+  "all_identical": true,
+  "comparisons": [
+    {
+      "seed_dir": "ppo_pretrain_corrupted/seed_42",
+      "parameters_identical": true,
+      "metrics_identical": true,
+      "fresh_fingerprint": "a62c41bcc0638a0b",
+      "imported_fingerprint": "a62c41bcc0638a0b",
+      "metric_absolute_differences": {
+        "success_rate": 0.0,
+        "mean_reward": 0.0,
+        "mean_steps_to_goal": 0.0,
+        "mean_path_efficiency": 0.0
+      }
+    },
+    {
+      "seed_dir": "ppo_scratch_original/seed_42",
+      "parameters_identical": true,
+      "metrics_identical": true,
+      "fresh_fingerprint": "3d29fc5c754dcf9e",
+      "imported_fingerprint": "3d29fc5c754dcf9e",
+      "metric_absolute_differences": {
+        "success_rate": 0.0,
+        "mean_reward": 0.0,
+        "mean_steps_to_goal": 0.0,
+        "mean_path_efficiency": 0.0
+      }
+    },
+    {
+      "seed_dir": "ppo_pretrain_corrupted/seed_2000",
+      "parameters_identical": true,
+      "metrics_identical": true,
+      "fresh_fingerprint": "354c788af8196a2d",
+      "imported_fingerprint": "354c788af8196a2d",
+      "metric_absolute_differences": {
+        "success_rate": 0.0,
+        "mean_reward": 0.0,
+        "mean_steps_to_goal": 0.0,
+        "mean_path_efficiency": 0.0
+      }
+    },
+    {
+      "seed_dir": "ppo_scratch_original/seed_2000",
+      "parameters_identical": true,
+      "metrics_identical": true,
+      "fresh_fingerprint": "a80de1ec39eee781",
+      "imported_fingerprint": "a80de1ec39eee781",
+      "metric_absolute_differences": {
+        "success_rate": 0.0,
+        "mean_reward": 0.0,
+        "mean_steps_to_goal": 0.0,
+        "mean_path_efficiency": 0.0
+      }
+    }
+  ],
+  "wall_clock_seconds": 88.1,
+  "conclusion": "Retraining reproduces the imported models exactly; the imported arms are what this directory would have produced."
+}

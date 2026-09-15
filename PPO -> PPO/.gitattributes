@@ -1,0 +1,2 @@
+# Python CSV output uses CRLF; preserve the recorded files verbatim.
+*.csv -text whitespace=cr-at-eol

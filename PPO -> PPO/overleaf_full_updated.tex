@@ -1,0 +1,405 @@
+Transfer Learning
+
+\section{Shared Experimental Setup}
+
+Task: \texttt{PointMaze\_UMaze-v3}, sparse reward, 300-step episodes,
+\texttt{Discrete(9)} bang-bang actions. Three pretrain--fine-tune pairings are
+studied under identical conditions:
+
+\begin{itemize}
+  \item \textbf{Study A} --- PPO pretrained on the corrupted environment, GFlowNet fine-tuned on the original.
+GitHub Link: https://github.com/MirzoUlugbekFazilov/RL-Research/tree/main/PPO%20to%20GFlowNet%20(2%20corrupted)
+
+  \item \textbf{Study B} --- GFlowNet pretrained on the corrupted environment, PPO fine-tuned on the original.
+GitHub Link: https://github.com/MirzoUlugbekFazilov/RL-Research/tree/main/GFlowNet%20to%20PPO%20(2%20corrupted)
+
+  \item \textbf{Study C} --- PPO pretrained on the corrupted environment, PPO fine-tuned on the original. The same-algorithm control the two cross-algorithm studies were missing.
+GitHub Link: \emph{(to be added --- local directory \texttt{PPO + PPO})}
+\end{itemize}
+
+Each study runs three arms, $n=30$ seeds each, 300,000 environment steps per
+phase:
+
+\begin{itemize}
+  \item \textbf{Pretrain} --- random init, on the \emph{corrupted} environment.
+  \item \textbf{Fine-tuned} --- initialised by exact parameter copy of the pretrained policy, on the \emph{original} environment.
+  \item \textbf{Scratch} (control) --- random init, on the \emph{original} environment.
+\end{itemize}
+
+Fine-tuned and scratch share algorithm, environment, budget and
+hyperparameters, and differ only in initialisation; their contrast is the
+primary outcome. Policies are evaluated frozen and deterministically on 100
+fixed held-out instances. \texttt{hyperparameters.py} is byte-identical across
+all three studies (SHA-256 \texttt{d01ab117\dots}).
+
+Three corruptions are used:
+
+\begin{itemize}
+  \item \texttt{large\_multigoal} --- a $12\times9$ maze with 7 goal cells replaces the $5\times5$ UMaze.
+  \item \texttt{action\_gain\_jitter} --- actuator gain $g\sim\mathcal{U}(0.9,1.1)$, drawn per episode, unobservable. Since $g=1$ is interior to the support, this is domain randomisation, not a conflicting task.
+  \item \texttt{negate\_both} --- $u\mapsto-u$; prior work, included as a reference in Studies A and B and not re-run. Study C has no \texttt{negate\_both} condition.
+\end{itemize}
+
+The transfer is an exact parameter copy, verified on all 30 seeds of every
+condition (maximum absolute logit deviation $0.00$ over 512 probe observations;
+greedy-action agreement $1.000$). One head cannot transfer across algorithms ---
+the GFlowNet's $\log Z$ head in Study A, PPO's critic in Study B --- and is
+randomly initialised in both the fine-tuned and the scratch arm, so it is never
+a difference between them. Study C's primary arm gives up the same head
+voluntarily (\S\ref{sec:studyc}). The scratch control is bit-identical across
+all corruptions within a study (maximum discrepancy $0$), so corruptions are
+compared against a common baseline.
+
+\paragraph{Arms shared between studies.} Study C is not an independent
+replication. Its pretrain arm \emph{is} Study A's phase 1 --- the same 30 PPO
+checkpoints per corruption --- and its scratch control \emph{is} Study B's
+control, model for model (maximum discrepancy $0$ on all four metrics, all 30
+seeds, both corruptions). Sharing them is deliberate: it makes
+``which algorithm pretrains better?'' and ``which algorithm fine-tunes better?''
+paired contrasts over a common phase 1 and a common baseline, rather than three
+studies that merely follow the same recipe. Retraining those arms in Study C's
+own directory reproduces the shared models bit for bit (identical parameter
+SHA-256, identical evaluation on all four metrics), so the sharing costs nothing
+in independence that separate runs would have bought.
+
+\clearpage
+\section{Study A: PPO to GFlowNet}
+
+PPO pretrains on the corrupted environment and a GFlowNet is fine-tuned on the
+original. The control is a GFlowNet trained from scratch, so the contrast holds
+the fine-tuning algorithm fixed.
+
+\begin{table}[htbp]
+\centering
+\setlength{\tabcolsep}{4pt}
+\caption{Study A primary contrast: fine-tuned $-$ scratch on the original
+environment. Both arms are GFlowNet. Positive favours fine-tuning, except
+steps-to-goal where lower is better. Hedges' $g$ in parentheses;
+${}^{*}p<0.05$, ${}^{**}p<0.01$, Holm-corrected over the four metrics.}
+\small
+\begin{tabular}{lcccc}
+\toprule
+Corruption & Success rate & Mean return & Steps to goal & Path efficiency \\
+\midrule
+\texttt{large\_multigoal} & $-0.007$ & $+11.1$ & $-11.5^{**}$ & $+0.021$ \\
+ & \footnotesize$(-0.05)$ & \footnotesize$(0.57)$ & \footnotesize$(-0.92)$ & \footnotesize$(0.44)$ \\[3pt]
+\texttt{action\_gain\_jitter} & $-0.021$ & $+16.8^{*}$ & $-7.4$ & $+0.013$ \\
+ & \footnotesize$(-0.13)$ & \footnotesize$(0.73)$ & \footnotesize$(-0.59)$ & \footnotesize$(0.29)$ \\[3pt]
+\texttt{negate\_both} (ref.) & $-0.025$ & $+4.0$ & $-7.2$ & $+0.004$ \\
+ & \footnotesize$(-0.17)$ & \footnotesize$(0.22)$ & \footnotesize$(-0.55)$ & \footnotesize$(0.08)$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\setlength{\tabcolsep}{4pt}
+\caption{Study A, final performance by arm, mean $\pm$ SD over $n=30$ seeds.
+\emph{Native} is the pretrained policy on the corrupted environment it trained
+on; \emph{zero-shot} is the same policy on the original environment without
+adaptation. The GFlowNet scratch arm is shared across both corruptions.}
+\small
+\begin{tabular}{llcccc}
+\toprule
+Corruption & Arm & Success & Return & Steps & Path eff. \\
+\midrule
+\multicolumn{6}{l}{\texttt{large\_multigoal}} \\
+ & Pretrain (native)    & $0.229 \pm 0.094$ & $16.8 \pm 8.5$ & $145.7 \pm 33.0$ & $0.851 \pm 0.092$ \\
+ & Pretrain (zero-shot) & $0.274 \pm 0.122$ & $22.7 \pm 11.8$ & $92.4 \pm 24.6$ & $0.690 \pm 0.085$ \\
+ & Fine-tuned           & $0.719 \pm 0.144$ & $62.3 \pm 20.5$ & $73.9 \pm 12.4$ & $0.701 \pm 0.050$ \\
+\midrule
+\multicolumn{6}{l}{\texttt{action\_gain\_jitter}} \\
+ & Pretrain (native)    & $0.818 \pm 0.032$ & $183.5 \pm 12.1$ & $67.8 \pm 6.7$ & $0.898 \pm 0.024$ \\
+ & Pretrain (zero-shot) & $0.821 \pm 0.030$ & $184.1 \pm 11.7$ & $68.2 \pm 6.0$ & $0.897 \pm 0.024$ \\
+ & Fine-tuned           & $0.704 \pm 0.181$ & $68.0 \pm 26.7$ & $78.1 \pm 12.5$ & $0.693 \pm 0.044$ \\
+\midrule
+\multicolumn{2}{l}{GFlowNet scratch (control)} & $0.726 \pm 0.134$ & $51.2 \pm 18.1$ & $85.4 \pm 12.3$ & $0.679 \pm 0.046$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\setlength{\tabcolsep}{4pt}
+\caption{Study A, damage and sample efficiency. The uniform-random floor is
+$0.26$. Steps to $0.80$ is the median over seeds, with seeds reaching the
+threshold in parentheses.}
+\small
+\begin{tabular}{lccccc}
+\toprule
+Corruption & Native & Zero-shot & Jumpstart & Steps to 0.80 & Speed-up \\
+\midrule
+\texttt{large\_multigoal} & 0.229 & 0.274 & $+0.059$ & 84,000 (27/30) & $1.80\times$ \\
+\texttt{action\_gain\_jitter} & 0.818 & 0.821 & $+0.641$ & 0 (30/30) & at step 0 \\
+\texttt{negate\_both} (ref.) & 0.825 & 0.000 & $-0.217$ & 151,200 (27/30) & $1.00\times$ \\
+\midrule
+GFlowNet scratch & --- & --- & --- & 151,200 (28/30) & $1.00\times$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Findings.}
+\begin{itemize}
+  \item \textbf{Success rate never improves, in any condition.} All three differences are negative ($-0.007$, $-0.021$, $-0.025$) and none is significant. Pretraining does not raise the converged success rate.
+  \item \textbf{Route quality does improve, consistently.} Steps-to-goal falls in all three conditions, significantly so for \texttt{large\_multigoal} ($-11.5$, $g=-0.92$, $p_{\mathrm{Holm}}=0.003$), and path efficiency rises in all three. The PPO initialisation transfers a directness the GFlowNet does not otherwise acquire within budget.
+  \item \textbf{Fine-tuning can destroy a good policy.} Under \texttt{action\_gain\_jitter} the pretrained PPO policy enters adaptation at $0.858$ success but ends at $0.704$, \emph{below} the $0.726$ scratch control. The GFlowNet objective samples trajectories in proportion to reward rather than maximising it, so continued training pulls an already near-optimal policy back toward its sampling distribution. A jumpstart of $+0.641$ is therefore entirely surrendered.
+  \item \textbf{The ceiling is set by the fine-tuning algorithm, not the initialisation.} Every arm converges near $0.70$--$0.73$, irrespective of where it started. Study C tests this claim directly, by fine-tuning PPO from the same checkpoints (\S\ref{sec:studyc}).
+\end{itemize}
+
+\clearpage
+\section{Study B: GFlowNet to PPO}
+
+The same design with the algorithms exchanged: a GFlowNet pretrains on the
+corrupted environment and PPO is fine-tuned on the original, against a PPO
+from-scratch control.
+
+\begin{table}[htbp]
+\centering
+\setlength{\tabcolsep}{4pt}
+\caption{Study B primary contrast: fine-tuned $-$ scratch on the original
+environment. Both arms are PPO. Conventions as in Study A;
+${}^{*}p<0.05$, ${}^{***}p<0.001$, Holm-corrected.}
+\small
+\begin{tabular}{lcccc}
+\toprule
+Corruption & Success rate & Mean return & Steps to goal & Path efficiency \\
+\midrule
+\texttt{large\_multigoal} & $-0.002$ & $-7.3$ & $+6.3^{*}$ & $-0.020^{*}$ \\
+ & \footnotesize$(-0.04)$ & \footnotesize$(-0.53)$ & \footnotesize$(0.80)$ & \footnotesize$(-0.72)$ \\[3pt]
+\texttt{action\_gain\_jitter} & $+0.011$ & $+8.2^{*}$ & $-2.6$ & $-0.002$ \\
+ & \footnotesize$(0.35)$ & \footnotesize$(0.71)$ & \footnotesize$(-0.46)$ & \footnotesize$(-0.08)$ \\[3pt]
+\texttt{negate\_both} (ref.) & $-0.051^{***}$ & $-40.1^{***}$ & $+3.8$ & $-0.076^{***}$ \\
+ & \footnotesize$(-1.00)$ & \footnotesize$(-1.61)$ & \footnotesize$(0.45)$ & \footnotesize$(-1.87)$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\setlength{\tabcolsep}{4pt}
+\caption{Study B, final performance by arm, mean $\pm$ SD over $n=30$ seeds.
+Conventions as in Study A. The PPO scratch arm is shared across both
+corruptions, and is the same control Study C uses.}
+\small
+\begin{tabular}{llcccc}
+\toprule
+Corruption & Arm & Success & Return & Steps & Path eff. \\
+\midrule
+\multicolumn{6}{l}{\texttt{large\_multigoal}} \\
+ & Pretrain (native)    & $0.178 \pm 0.080$ & $8.6 \pm 6.1$ & $154.5 \pm 37.7$ & $0.788 \pm 0.085$ \\
+ & Pretrain (zero-shot) & $0.311 \pm 0.142$ & $16.9 \pm 6.9$ & $84.8 \pm 21.4$ & $0.666 \pm 0.081$ \\
+ & Fine-tuned           & $0.825 \pm 0.046$ & $178.4 \pm 13.4$ & $74.9 \pm 9.0$ & $0.879 \pm 0.030$ \\
+\midrule
+\multicolumn{6}{l}{\texttt{action\_gain\_jitter}} \\
+ & Pretrain (native)    & $0.708 \pm 0.182$ & $48.5 \pm 20.6$ & $83.9 \pm 15.5$ & $0.673 \pm 0.049$ \\
+ & Pretrain (zero-shot) & $0.703 \pm 0.183$ & $48.6 \pm 20.7$ & $83.5 \pm 15.2$ & $0.675 \pm 0.048$ \\
+ & Fine-tuned           & $0.838 \pm 0.035$ & $193.9 \pm 8.7$ & $66.0 \pm 5.0$ & $0.897 \pm 0.030$ \\
+\midrule
+\multicolumn{2}{l}{PPO scratch (control)} & $0.827 \pm 0.029$ & $185.7 \pm 13.7$ & $68.6 \pm 6.2$ & $0.899 \pm 0.024$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\setlength{\tabcolsep}{4pt}
+\caption{Study B, damage and sample efficiency. Conventions as in Study A.}
+\small
+\begin{tabular}{lccccc}
+\toprule
+Corruption & Native & Zero-shot & Jumpstart & Steps to 0.80 & Speed-up \\
+\midrule
+\texttt{large\_multigoal} & 0.178 & 0.311 & $+0.042$ & 150,000 (29/30) & $1.25\times$ \\
+\texttt{action\_gain\_jitter} & 0.708 & 0.703 & $+0.467$ & 30,000 (30/30) & $6.25\times$ \\
+\texttt{negate\_both} (ref.) & 0.666 & 0.017 & $-0.220$ & 232,500 (22/30) & $0.81\times$ \\
+\midrule
+PPO scratch & --- & --- & --- & 187,500 (30/30) & $1.00\times$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Findings.}
+\begin{itemize}
+  \item \textbf{Corruption severity spans the full range.} \texttt{negate\_both} leaves a policy that is actively wrong ($0.017$, below the random floor); \texttt{large\_multigoal} mediocre but not wrong ($0.311$); \texttt{action\_gain\_jitter} undamaged ($0.703$ vs.\ $0.708$ native, $p=0.92$).
+  \item \textbf{No corruption improved final performance.} Success rate differences are $-0.002$ ($p_{\mathrm{Holm}}=0.868$) and $+0.011$ ($p_{\mathrm{Holm}}=0.354$); the reference condition is significantly worse. As in Study A, pretraining is neutral to harmful at convergence, never beneficial.
+  \item \textbf{The benefit is sample efficiency only.} \texttt{action\_gain\_jitter} gives a $+0.467$ jumpstart and reaches $0.80$ success $6.25\times$ sooner, then converges to a statistical tie.
+  \item \textbf{Structural corruption leaves a residual cost.} \texttt{large\_multigoal} matches on success but is $6.3$ steps slower ($g=0.80$) and $0.020$ less path-efficient ($g=-0.72$), both significant after correction --- the opposite sign to Study A, where the PPO initialisation \emph{shortened} routes.
+  \item \textbf{Initialisation washes out.} Across-seed SD falls from $\pm0.182$ (pretrained) to $\pm0.035$ (fine-tuned), against $\pm0.029$ for the control: PPO converges to a common ceiling regardless of where it starts.
+\end{itemize}
+
+\clearpage
+\section{Study C: PPO to PPO}
+\label{sec:studyc}
+
+Studies A and B each ask whether pretraining on a corrupted environment beats
+training from scratch, and each answers no at convergence. Neither can ask the
+follow-up, because neither runs the matched same-algorithm pretraining: ``GFlowNet
+pretraining did not help PPO'' leaves open whether \emph{any} pretraining would
+have, or whether the GFlowNet specifically was a poor teacher. Study C settles
+it. PPO pretrains on the corrupted environment and PPO is fine-tuned on the
+original, against the identical from-scratch control Study B used.
+
+\paragraph{Two transfer surfaces.} A GFlowNet has no value function, so Study B's
+transfer could only ever hand PPO a policy. If Study C handed over a whole PPO
+model, ``PPO pretraining beats GFlowNet pretraining'' would be confounded with
+``a learned critic beats a random one''. Both are therefore run, over the same
+pretrained checkpoints:
+
+\begin{itemize}
+  \item \textbf{Actor copy} (primary) --- the six actor tensors and nothing else; critic randomly initialised, Adam moments fresh. Exactly Study B's transfer surface, so the Study~B--Study~C contrast varies only \emph{which algorithm pretrained}.
+  \item \textbf{Full model} (secondary) --- actor, critic and Adam moments, by direct checkpoint load. Ordinary PPO fine-tuning, and the arm the cross-algorithm studies could not run. Its gap over the actor-copy arm \emph{prices} the value function a GFlowNet cannot provide.
+\end{itemize}
+
+\begin{table}[htbp]
+\centering
+\setlength{\tabcolsep}{4pt}
+\caption{Study C primary contrast: fine-tuned $-$ scratch on the original
+environment. Both arms are PPO. Conventions as in Study A;
+${}^{*}p<0.05$, ${}^{**}p<0.01$, ${}^{***}p<0.001$, Holm-corrected.
+No \texttt{negate\_both} condition was run for this study.}
+\small
+\begin{tabular}{llcccc}
+\toprule
+Corruption & Surface & Success rate & Mean return & Steps to goal & Path efficiency \\
+\midrule
+\texttt{large\_multigoal} & actor copy & $+0.010$ & $-0.6$ & $+2.5$ & $-0.022^{*}$ \\
+ & & \footnotesize$(0.23)$ & \footnotesize$(-0.04)$ & \footnotesize$(0.28)$ & \footnotesize$(-0.71)$ \\[3pt]
+ & full model & $-0.049$ & $-27.9^{**}$ & $+10.1^{*}$ & $-0.050^{***}$ \\
+ & & \footnotesize$(-0.49)$ & \footnotesize$(-0.84)$ & \footnotesize$(0.74)$ & \footnotesize$(-1.05)$ \\[3pt]
+\midrule
+\texttt{action\_gain\_jitter} & actor copy & $-0.007$ & $+14.0^{***}$ & $-11.5^{***}$ & $+0.029^{***}$ \\
+ & & \footnotesize$(-0.19)$ & \footnotesize$(1.22)$ & \footnotesize$(-2.03)$ & \footnotesize$(1.49)$ \\[3pt]
+ & full model & $+0.039^{***}$ & $+26.1^{***}$ & $-12.3^{***}$ & $+0.027^{***}$ \\
+ & & \footnotesize$(1.24)$ & \footnotesize$(2.42)$ & \footnotesize$(-2.31)$ & \footnotesize$(1.41)$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\setlength{\tabcolsep}{4pt}
+\caption{Study C, final performance by arm, mean $\pm$ SD over $n=30$ seeds.
+The pretrain rows are Study A's phase 1, the same 30 checkpoints per corruption;
+the scratch row is Study B's control, the same 30 models. Conventions as in
+Study A.}
+\small
+\begin{tabular}{llcccc}
+\toprule
+Corruption & Arm & Success & Return & Steps & Path eff. \\
+\midrule
+\multicolumn{6}{l}{\texttt{large\_multigoal}} \\
+ & Pretrain (native)       & $0.229 \pm 0.094$ & $16.8 \pm 8.5$ & $145.7 \pm 33.0$ & $0.851 \pm 0.092$ \\
+ & Pretrain (zero-shot)    & $0.274 \pm 0.122$ & $22.7 \pm 11.8$ & $92.4 \pm 24.6$ & $0.690 \pm 0.085$ \\
+ & Fine-tuned (actor copy) & $0.837 \pm 0.055$ & $185.1 \pm 18.5$ & $71.2 \pm 11.0$ & $0.877 \pm 0.036$ \\
+ & Fine-tuned (full model) & $0.778 \pm 0.138$ & $157.8 \pm 44.1$ & $78.8 \pm 18.2$ & $0.849 \pm 0.062$ \\
+\midrule
+\multicolumn{6}{l}{\texttt{action\_gain\_jitter}} \\
+ & Pretrain (native)       & $0.818 \pm 0.032$ & $183.5 \pm 12.1$ & $67.8 \pm 6.7$ & $0.898 \pm 0.024$ \\
+ & Pretrain (zero-shot)    & $0.821 \pm 0.030$ & $184.1 \pm 11.7$ & $68.2 \pm 6.0$ & $0.897 \pm 0.024$ \\
+ & Fine-tuned (actor copy) & $0.820 \pm 0.043$ & $199.7 \pm 8.5$ & $57.1 \pm 4.9$ & $0.928 \pm 0.012$ \\
+ & Fine-tuned (full model) & $0.866 \pm 0.033$ & $211.8 \pm 6.3$ & $56.3 \pm 4.1$ & $0.926 \pm 0.010$ \\
+\midrule
+\multicolumn{2}{l}{PPO scratch (control)} & $0.827 \pm 0.029$ & $185.7 \pm 13.7$ & $68.6 \pm 6.2$ & $0.899 \pm 0.024$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\setlength{\tabcolsep}{4pt}
+\caption{Study C, damage and sample efficiency. Conventions as in Study A.
+Native and zero-shot are Study A's pretrain arm and are repeated here for
+readability.}
+\small
+\begin{tabular}{llccccc}
+\toprule
+Corruption & Surface & Native & Zero-shot & Jumpstart & Steps to 0.80 & Speed-up \\
+\midrule
+\texttt{large\_multigoal} & actor copy & 0.229 & 0.274 & $+0.037$ & 142,500 (28/30) & $1.32\times$ \\
+ & full model & 0.229 & 0.274 & $+0.037$ & 225,000 (25/30) & $0.83\times$ \\
+\midrule
+\texttt{action\_gain\_jitter} & actor copy & 0.818 & 0.821 & $+0.619$ & 0 (30/30) & at step 0 \\
+ & full model & 0.818 & 0.821 & $+0.619$ & 0 (30/30) & at step 0 \\
+\midrule
+PPO scratch & --- & --- & --- & --- & 187,500 (30/30) & $1.00\times$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Findings.}
+\begin{itemize}
+  \item \textbf{PPO is not a better teacher than a GFlowNet.} With the transfer surface held identical, PPO-pretrained $-$ GFlowNet-pretrained on success rate is $+0.012$ ($g=0.23$, $p_{\mathrm{Holm}}=0.730$) under \texttt{large\_multigoal} and $-0.018$ ($g=-0.46$, $p_{\mathrm{Holm}}=0.074$) under \texttt{action\_gain\_jitter}. Neither is significant. The null reported in Studies A and B is not an artefact of the GFlowNet being a poor source: matched same-algorithm pretraining does not beat it.
+  \item \textbf{The first arm in these studies to beat scratch at convergence.} Under \texttt{action\_gain\_jitter}, full-model PPO$\rightarrow$PPO reaches $0.866$ against the control's $0.827$ ($g=1.24$, $p_{\mathrm{Holm}}=9\times10^{-6}$) and is $12.3$ steps faster per episode. Across the six corruption--direction pairs of Studies A and B, not one showed a significant gain on the primary metric.
+  \item \textbf{Route quality improves even where success rate does not.} The actor-copy arm ties the control on success under \texttt{action\_gain\_jitter} ($-0.007$, n.s.) while cutting $11.5$ steps ($g=-2.03$) and raising path efficiency by $0.029$ ($g=1.49$), both $p_{\mathrm{Holm}}<10^{-5}$. A PPO policy pretrained under gain jitter has learned a \emph{shorter route}, and PPO fine-tuning keeps it.
+  \item \textbf{Structural mismatch makes the critic harmful.} The same full transfer that wins under \texttt{action\_gain\_jitter} loses under \texttt{large\_multigoal}: $-0.049$ success (n.s.), $-27.9$ return ($p_{\mathrm{Holm}}=0.007$), $+10.1$ steps and $-0.050$ path efficiency ($p_{\mathrm{Holm}}<0.001$), and it is \emph{slower} than the control to reach $0.80$ ($0.83\times$). A value function fitted to a $12\times9$ maze with seven goals misprices states in the $5\times5$ UMaze, and PPO spends budget unlearning it. Carrying the critic is worth it only when the two tasks share a reward geometry.
+\end{itemize}
+
+\clearpage
+\section{Cross-Study Comparison}
+
+\begin{table}[htbp]
+\centering
+\setlength{\tabcolsep}{4pt}
+\caption{All three studies, \texttt{action\_gain\_jitter}. The entry point is the
+pretrained policy's zero-shot score; the exit point is the fine-tuned arm at
+300,000 steps. Studies B and C share the PPO scratch control.}
+\small
+\begin{tabular}{lccc}
+\toprule
+ & Entry (zero-shot) & Exit (fine-tuned) & Scratch control \\
+\midrule
+Study A (PPO $\rightarrow$ GFN)              & 0.821 & $0.704$ & $0.726$ \\
+Study B (GFN $\rightarrow$ PPO)              & 0.703 & $0.838$ & $0.827$ \\
+Study C (PPO $\rightarrow$ PPO, actor copy)  & 0.821 & $0.820$ & $0.827$ \\
+Study C (PPO $\rightarrow$ PPO, full model)  & 0.821 & $0.866$ & $0.827$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\setlength{\tabcolsep}{4pt}
+\caption{Which algorithm fine-tunes better, from the \emph{same} pretrained PPO
+checkpoints. Study A fine-tunes a GFlowNet from \texttt{ppo\_pretrain\_corrupted};
+Study C fine-tunes PPO from the same 30 checkpoints per corruption, so phase 1
+is held fixed and only the fine-tuning algorithm varies. Mean $\pm$ SD over
+$n=30$ seeds.}
+\small
+\begin{tabular}{llcccc}
+\toprule
+Corruption & Fine-tuner & Success & Return & Steps & Path eff. \\
+\midrule
+\multicolumn{6}{l}{\texttt{large\_multigoal}} \\
+ & GFlowNet (Study A)      & $0.719 \pm 0.144$ & $62.3 \pm 20.5$ & $73.9 \pm 12.4$ & $0.701 \pm 0.050$ \\
+ & PPO, actor copy         & $0.837 \pm 0.055$ & $185.1 \pm 18.5$ & $71.2 \pm 11.0$ & $0.877 \pm 0.036$ \\
+ & PPO, full model         & $0.778 \pm 0.138$ & $157.8 \pm 44.1$ & $78.8 \pm 18.2$ & $0.849 \pm 0.062$ \\
+ & \emph{PPO (actor) $-$ GFlowNet} & $+0.118^{***}$ & $+122.9^{***}$ & $-2.7$ & $+0.176^{***}$ \\
+ &                         & \footnotesize$(1.07)$ & \footnotesize$(6.22)$ & \footnotesize$(-0.23)$ & \footnotesize$(3.98)$ \\
+\midrule
+\multicolumn{6}{l}{\texttt{action\_gain\_jitter}} \\
+ & GFlowNet (Study A)      & $0.704 \pm 0.181$ & $68.0 \pm 26.7$ & $78.1 \pm 12.5$ & $0.693 \pm 0.044$ \\
+ & PPO, actor copy         & $0.820 \pm 0.043$ & $199.7 \pm 8.5$ & $57.1 \pm 4.9$ & $0.928 \pm 0.012$ \\
+ & PPO, full model         & $0.866 \pm 0.033$ & $211.8 \pm 6.3$ & $56.3 \pm 4.1$ & $0.926 \pm 0.010$ \\
+ & \emph{PPO (actor) $-$ GFlowNet} & $+0.116^{**}$ & $+131.7^{***}$ & $-21.0^{***}$ & $+0.235^{***}$ \\
+ &                         & \footnotesize$(0.87)$ & \footnotesize$(6.57)$ & \footnotesize$(-2.18)$ & \footnotesize$(7.23)$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{itemize}
+  \item \textbf{Pretraining almost never raises the converged success rate, whichever algorithm does it.} Across the ten corruption--condition pairs spanning all three studies (three in A, three in B, and two corruptions $\times$ two surfaces in C), exactly one shows a significant gain on the primary metric: full-model PPO$\rightarrow$PPO under \texttt{action\_gain\_jitter} ($+0.039$, $g=1.24$). One shows a significant loss (\texttt{negate\_both} in Study B). The remaining eight are neutral.
+  \item \textbf{The source algorithm barely matters; the target algorithm dominates.} Holding the transfer surface fixed, swapping the \emph{pretrainer} from GFlowNet to PPO moves success rate by $+0.012$ and $-0.018$, neither significant. Swapping the \emph{fine-tuner} from GFlowNet to PPO, from identical initial actor weights (each gives up exactly one head --- the GFlowNet its $\log Z$, PPO its critic), moves it by $+0.118$ and $+0.116$ ($g=1.07$ and $0.87$, $p_{\mathrm{Holm}}<0.002$), with return gaps above $120$ and path-efficiency gaps above $0.17$. Study A's conclusion that the ceiling belongs to the fine-tuning algorithm is confirmed directly, with phase 1 held fixed.
+  \item \textbf{The three pairings fail differently.} Study A converts its head start into route quality and surrenders its success rate; Study B converts its head start into sample efficiency ($6.25\times$) and then ties; Study C, at the matched surface, converts it into route quality without losing success, and at the full surface converts it into a genuine but corruption-dependent gain.
+  \item \textbf{The value function is the one asset that changes the answer, and it cuts both ways.} It is the only thing the cross-algorithm studies structurally cannot transfer, and adding it back is what produces the single significant success-rate gain in the whole series ($+0.046$ over the actor-only arm under \texttt{action\_gain\_jitter}, $g=1.19$). Under \texttt{large\_multigoal} the same asset costs $-0.060$ ($g=-0.56$) --- the critic transfers only when the reward geometry survives the corruption.
+\end{itemize}
+
+\section{Limitations}
+
+\begin{itemize}
+  \item \texttt{large\_multigoal} is not difficulty-preserving --- maze, size, start and goal distributions change together --- so its zero-shot number conflates a wrong policy with an unseen task shape, and its native score is not comparable across environments. The primary contrasts are unaffected: both arms run the same algorithm on the same environment under the same budget.
+  \item \textbf{Study C's full-model arm is the one contrast in the series that is not initialisation-only.} It inherits a trained critic and Adam moments, while its scratch control starts from a random critic like every other arm. It is included to price that difference and should be read against the actor-copy arm, not against scratch; the actor-copy arm is the like-for-like comparison and is reported as Study C's primary.
+  \item Mean return is not independent. Episodes are not terminated on success and accrue reward while at the goal, so return $\approx$ success rate $\times$ remaining time ($0.838\times(300-66)\approx196$ vs.\ measured $193.9$). It aggregates success and latency rather than measuring a distinct property, which is why it can be the only significant metric while success rate is flat.
+  \item At $n=30$, power is $\approx0.93$ for $|g|=1.1$ but $0.3$--$0.5$ for $|g|\approx0.5$. Non-significant entries should be read as unresolved, not as established nulls; effect sizes are therefore reported unconditionally.
+  \item \textbf{A 300,000-step fine-tuning budget is long enough for PPO to solve the original task from a random start, so a converged comparison cannot show a sample-efficiency benefit --- it measures the arms after the benefit has been spent.} The regime a robotic application actually poses is the opposite: a long pretraining phase and a short budget on the target. That regime is below this study's resolution --- learning curves are evaluated every 15,000 steps, so a 10,000-step fine-tuning budget cannot be read off them at all. Measuring it requires fine-tuning runs at 5k/10k/25k/50k with a from-scratch control matched at each budget, which is a separate sweep and not a re-reading of these curves.
+  \item Single environment family, one action interface, one 300,000-step budget. Results do not extend to continuous-action settings, dense rewards, or longer budgets without re-measurement.
+\end{itemize}
