@@ -1,0 +1,65 @@
+{
+  "source_checkpoint": "/Users/mirzo-ulugbekfazilov/Desktop/PPO + PPO/runs/action_gain_jitter/checkpoints/ppo_pretrain_corrupted/seed_2017/model.zip",
+  "source_algo": "ppo",
+  "target_algo": "ppo",
+  "transfer_surface": "policy_only",
+  "parameters_transferred": [
+    {
+      "source": "mlp_extractor.policy_net.0.weight",
+      "target": "mlp_extractor.policy_net.0.weight",
+      "shape": [
+        128,
+        7
+      ]
+    },
+    {
+      "source": "mlp_extractor.policy_net.0.bias",
+      "target": "mlp_extractor.policy_net.0.bias",
+      "shape": [
+        128
+      ]
+    },
+    {
+      "source": "mlp_extractor.policy_net.2.weight",
+      "target": "mlp_extractor.policy_net.2.weight",
+      "shape": [
+        128,
+        128
+      ]
+    },
+    {
+      "source": "mlp_extractor.policy_net.2.bias",
+      "target": "mlp_extractor.policy_net.2.bias",
+      "shape": [
+        128
+      ]
+    },
+    {
+      "source": "action_net.weight",
+      "target": "action_net.weight",
+      "shape": [
+        9,
+        128
+      ]
+    },
+    {
+      "source": "action_net.bias",
+      "target": "action_net.bias",
+      "shape": [
+        9
+      ]
+    }
+  ],
+  "n_parameters_transferred": 6,
+  "critic_randomly_initialised": true,
+  "critic_differs_from_source": true,
+  "optimiser_moments_transferred": false,
+  "probe_observations": 512,
+  "probe_seed": 2017,
+  "max_abs_logit_difference": 0.0,
+  "max_abs_probability_difference": 0.0,
+  "greedy_action_agreement": 1.0,
+  "equivalent": true,
+  "pretrain_decisions_in_checkpoint": 61440,
+  "pretrain_steps_in_checkpoint": 307200
+}

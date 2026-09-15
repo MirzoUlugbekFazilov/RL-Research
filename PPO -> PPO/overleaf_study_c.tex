@@ -1,0 +1,57 @@
+\section{Study C: PPO to PPO}
+
+The same design with PPO in both phases. Study C's fine-tuned arm shares
+its from-scratch control with Study B model for model, and its pretrained
+checkpoints with Study A, so the three studies form one comparison rather
+than three.
+
+\begin{table}[htbp]
+\centering
+\setlength{\tabcolsep}{4pt}
+\caption{Study C primary contrast: fine-tuned $-$ scratch on the original
+environment. Both arms are PPO, initialised by actor copy only --- the same
+transfer surface Study B's GFlowNet offers. Hedges' $g$ in parentheses;
+${}^{*}p<0.05$, ${}^{**}p<0.01$, ${}^{***}p<0.001$, Holm-corrected over the
+four metrics.}
+\small
+\begin{tabular}{lcccc}
+\toprule
+Corruption & Success rate & Mean return & Steps to goal & Path efficiency \\
+\midrule
+\texttt{large\_multigoal} & $+0.010$ & $-0.6$ & $+2.5$ & $-0.022^{*}$ \\
+ & \footnotesize$(0.23)$ & \footnotesize$(-0.04)$ & \footnotesize$(0.28)$ & \footnotesize$(-0.71)$ \\[3pt]
+\texttt{action\_gain\_jitter} & $-0.007$ & $+14.0^{***}$ & $-11.5^{***}$ & $+0.029^{***}$ \\
+ & \footnotesize$(-0.19)$ & \footnotesize$(1.22)$ & \footnotesize$(-2.03)$ & \footnotesize$(1.49)$ \\[3pt]
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\setlength{\tabcolsep}{4pt}
+\caption{All four PPO arms on the original environment at 300{,}000 steps,
+mean $\pm$ SD over $n=30$ seeds. Every arm is PPO under identical
+hyperparameters and budget. The first three differ only in the policy
+weights at step 0; the fourth additionally inherits the pretrained critic
+and the optimiser moments, and should be read against \emph{PPO (actor)}
+rather than against \emph{random}. The scratch arm is the same 30 models
+in every row block.}
+\small
+\begin{tabular}{llcccc}
+\toprule
+Corruption & Initialised from & Success & Return & Steps & Path eff. \\
+\midrule
+\multicolumn{6}{l}{\texttt{large\_multigoal}} \\
+ & random & $0.827 \pm 0.029$ & $185.7 \pm 13.7$ & $68.6 \pm 6.2$ & $0.899 \pm 0.024$ \\
+ & GFlowNet (actor) & $0.825 \pm 0.046$ & $178.4 \pm 13.4$ & $74.9 \pm 9.0$ & $0.879 \pm 0.030$ \\
+ & PPO (actor) & $0.837 \pm 0.055$ & $185.1 \pm 18.5$ & $71.2 \pm 11.0$ & $0.877 \pm 0.036$ \\
+ & PPO (full model) & $0.778 \pm 0.138$ & $157.8 \pm 44.1$ & $78.8 \pm 18.2$ & $0.849 \pm 0.062$ \\
+\midrule
+\multicolumn{6}{l}{\texttt{action\_gain\_jitter}} \\
+ & random & $0.827 \pm 0.029$ & $185.7 \pm 13.7$ & $68.6 \pm 6.2$ & $0.899 \pm 0.024$ \\
+ & GFlowNet (actor) & $0.838 \pm 0.035$ & $193.9 \pm 8.7$ & $66.0 \pm 5.0$ & $0.897 \pm 0.030$ \\
+ & PPO (actor) & $0.820 \pm 0.043$ & $199.7 \pm 8.5$ & $57.1 \pm 4.9$ & $0.928 \pm 0.012$ \\
+ & PPO (full model) & $0.866 \pm 0.033$ & $211.8 \pm 6.3$ & $56.3 \pm 4.1$ & $0.926 \pm 0.010$ \\
+\bottomrule
+\end{tabular}
+\end{table}
